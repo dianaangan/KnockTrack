@@ -3,16 +3,11 @@ package com.knocktrack.knocktrack
 import android.util.Patterns
 
 class LoginPresenter {
-    private var view: LoginActivity? = null
-    private var userEmail: String = ""
-    private var userName: String = ""
-    private var userPassword: String = ""
+    private var view: LoginView? = null
+    private val model = LoginModel()
 
-    fun attachView(view: LoginActivity) {
+    fun attachView(view: LoginView) {
         this.view = view
-        userEmail = view.intent.getStringExtra("user_email") ?: ""
-        userName = view.intent.getStringExtra("user_name") ?: ""
-        userPassword = view.intent.getStringExtra("user_password") ?: ""
     }
 
     fun detachView() {
@@ -22,25 +17,36 @@ class LoginPresenter {
     fun login(email: String, password: String) {
         view?.clearErrors()
         
+        // First, do comprehensive validation using model
+        if (!model.validateLoginData(email, password)) {
+            view?.showError("Please enter both email and password")
+            return
+        }
+        
+        // Then do detailed validation for specific error messages
         if (!validateEmail(email)) return
         if (!validatePassword(password)) return
         
-        if (validateCredentials(email, password)) {
-            view?.showSuccess("Login successful!")
-            view?.navigateToHome(userName, userEmail, userPassword)
+        view?.showProgress()
+        
+        if (model.authenticate(email.trim(), password)) {
+            val userData = model.prepareUserData(email, password)
+            view?.hideProgress()
+            view?.onLoginSuccess("User", userData.first, userData.second)
+        } else {
+            view?.hideProgress()
+            view?.onLoginFailed("Invalid email or password")
         }
     }
 
     private fun validateEmail(email: String): Boolean {
-        val trimmedEmail = email.trim()
-        
         return when {
-            trimmedEmail.isEmpty() -> {
+            email.isEmpty() -> {
                 view?.showError("Email is required")
                 view?.setEmailError("Please enter your email")
                 false
             }
-            !Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches() -> {
+            !model.checkEmailFormat(email) -> {
                 view?.showError("Please enter a valid email address")
                 view?.setEmailError("Invalid email format")
                 false
@@ -56,28 +62,9 @@ class LoginPresenter {
                 view?.setPasswordError("Please enter your password")
                 false
             }
-            else -> true
-        }
-    }
-
-    private fun validateCredentials(email: String, password: String): Boolean {
-        return when {
-            userEmail.isEmpty() -> {
-                view?.showError("User not registered. Please register first.")
-                view?.setEmailError("User not found")
-                view?.setPasswordError("Invalid credentials")
-                false
-            }
-            email.trim() != userEmail -> {
-                view?.showError("Invalid email or password")
-                view?.setEmailError("User not found")
-                view?.setPasswordError("Invalid credentials")
-                false
-            }
-            password != userPassword -> {
-                view?.showError("Invalid email or password")
-                view?.setEmailError("User not found")
-                view?.setPasswordError("Invalid credentials")
+            !model.checkPasswordNotEmpty(password) -> {
+                view?.showError("Password is required")
+                view?.setPasswordError("Please enter your password")
                 false
             }
             else -> true

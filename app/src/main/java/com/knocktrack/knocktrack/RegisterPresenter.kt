@@ -3,9 +3,10 @@ package com.knocktrack.knocktrack
 import android.util.Patterns
 
 class RegisterPresenter {
-    private var view: RegisterActivity? = null
+    private var view: RegisterView? = null
+    private val model = RegisterModel()
 
-    fun attachView(view: RegisterActivity) {
+    fun attachView(view: RegisterView) {
         this.view = view
     }
 
@@ -16,37 +17,45 @@ class RegisterPresenter {
     fun register(email: String, name: String, password: String, confirmPassword: String) {
         view?.clearErrors()
         
+        // First, do comprehensive validation using model
+        if (!model.validateRegistrationData(name, email, password, confirmPassword)) {
+            view?.showError("Please fill in all fields and ensure passwords match")
+            return
+        }
+        
+        // Then do detailed validation for specific error messages
         if (!validateName(name)) return
         if (!validateEmail(email)) return
         if (!validatePassword(password)) return
         if (!validateConfirmPassword(password, confirmPassword)) return
         
-        view?.showSuccess("Registration successful! Please login.")
-        view?.navigateToLogin(email.trim(), name.trim(), password)
+        view?.showProgress()
+        
+        if (model.registerUser(name.trim(), email.trim(), password)) {
+            val userData = model.prepareUserData(name, email, password)
+            view?.hideProgress()
+            view?.onRegisterSuccess(userData.first, userData.second, userData.third)
+        } else {
+            view?.hideProgress()
+            view?.onRegisterFailed("Registration failed")
+        }
     }
 
     private fun validateName(name: String): Boolean {
-        val trimmedName = name.trim()
-        
         return when {
-            trimmedName.isEmpty() -> {
+            name.isEmpty() -> {
                 view?.showError("Name is required")
                 view?.setNameError("Please enter your full name")
                 false
             }
-            trimmedName.length < 2 -> {
-                view?.showError("Name must be at least 2 characters")
-                view?.setNameError("Name too short")
+            !model.checkNameFormat(name) -> {
+                view?.showError("Name must be at least 2 characters and contain only letters")
+                view?.setNameError("Invalid name format")
                 false
             }
-            trimmedName.length > 50 -> {
+            name.length > 50 -> {
                 view?.showError("Name must be less than 50 characters")
                 view?.setNameError("Name too long")
-                false
-            }
-            !trimmedName.matches(Regex("^[a-zA-Z\\s]+$")) -> {
-                view?.showError("Name can only contain letters and spaces")
-                view?.setNameError("Invalid characters")
                 false
             }
             else -> true
@@ -54,20 +63,18 @@ class RegisterPresenter {
     }
 
     private fun validateEmail(email: String): Boolean {
-        val trimmedEmail = email.trim()
-        
         return when {
-            trimmedEmail.isEmpty() -> {
+            email.isEmpty() -> {
                 view?.showError("Email is required")
                 view?.setEmailError("Please enter your email")
                 false
             }
-            !Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches() -> {
+            !model.checkEmailFormat(email) -> {
                 view?.showError("Please enter a valid email address")
                 view?.setEmailError("Invalid email format")
                 false
             }
-            trimmedEmail.length > 100 -> {
+            email.length > 100 -> {
                 view?.showError("Email is too long")
                 view?.setEmailError("Email too long")
                 false
@@ -83,7 +90,7 @@ class RegisterPresenter {
                 view?.setPasswordError("Please enter a password")
                 false
             }
-            password.length < 6 -> {
+            !model.checkPasswordStrength(password) -> {
                 view?.showError("Password must be at least 6 characters")
                 view?.setPasswordError("Too short")
                 false
@@ -111,5 +118,9 @@ class RegisterPresenter {
             }
             else -> true
         }
+    }
+
+    fun goToLogin() {
+        view?.navigateToLogin()
     }
 }

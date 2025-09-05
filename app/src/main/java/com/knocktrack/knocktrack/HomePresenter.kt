@@ -1,37 +1,39 @@
 package com.knocktrack.knocktrack
 
 class HomePresenter {
-    private var view: HomeActivity? = null
-    private var userName: String = ""
-    private var userEmail: String = ""
-    private var userPassword: String = ""
+    private var view: HomeView? = null
+    private val model = HomeModel()
+    var currentUserName: String? = null
+    var currentUserEmail: String? = null
+    var currentUserPassword: String? = null
 
-    fun attachView(view: HomeActivity) {
+    fun attachView(view: HomeView) {
         this.view = view
-        userName = view.intent.getStringExtra("user_name") ?: "User"
-        userEmail = view.intent.getStringExtra("user_email") ?: "user@example.com"
-        userPassword = view.intent.getStringExtra("user_password") ?: ""
     }
 
     fun detachView() {
         this.view = null
     }
 
-    fun loadUserData() {
-        if (validateUserData()) {
-            view?.showUserData(userName, userEmail)
+    fun processUserData(name: String, email: String, password: String) {
+        if (model.validateUserData(name, email, password)) {
+            val displayName = model.getUserDisplayName(name)
+            val displayEmail = model.getUserDisplayEmail(email)
+            view?.showUserData(displayName, displayEmail)
         } else {
             view?.navigateToLogin()
         }
     }
 
-    private fun validateUserData(): Boolean {
-        return userName.isNotEmpty() && userEmail.isNotEmpty() && userPassword.isNotEmpty()
-    }
-
     fun logout() {
-        if (validateUserData()) {
-            view?.navigateToLogin(userName, userEmail, userPassword)
+        if (currentUserName != null && currentUserEmail != null && currentUserPassword != null) {
+            val logoutData = model.prepareLogoutData(
+                currentUserName!!, 
+                currentUserEmail!!, 
+                currentUserPassword!!
+            )
+            view?.onLogoutSuccess()
+            view?.navigateToLogin(logoutData.first, logoutData.second, logoutData.third)
         } else {
             view?.navigateToLogin()
         }

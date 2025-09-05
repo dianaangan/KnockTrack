@@ -4,8 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.widget.*
-
-class HomeActivity : Activity() {
+class HomeActivity : Activity(), HomeView {
 
     private lateinit var presenter: HomePresenter
     private lateinit var tvWelcome: TextView
@@ -20,7 +19,17 @@ class HomeActivity : Activity() {
         initPresenter()
         setupListeners()
 
-        presenter.loadUserData()
+        val userName = intent.getStringExtra("user_name") ?: "User"
+        val userEmail = intent.getStringExtra("user_email") ?: "user@example.com"
+        val userPassword = intent.getStringExtra("user_password") ?: ""
+        
+        // Store data for logout
+        presenter.currentUserName = userName
+        presenter.currentUserEmail = userEmail
+        presenter.currentUserPassword = userPassword
+        
+        // Process user data through presenter and model
+        presenter.processUserData(userName, userEmail, userPassword)
     }
 
     private fun initViews() {
@@ -40,28 +49,29 @@ class HomeActivity : Activity() {
         }
     }
 
-    fun showUserData(name: String, email: String) {
+    // HomeView interface implementation
+    override fun showUserData(name: String, email: String) {
         tvWelcome.text = "Welcome, $name!"
         tvEmail.text = "Email: $email"
     }
 
-    fun navigateToLogin() {
+    override fun onLogoutSuccess() {
+        Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onLogoutFailed(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun navigateToLogin() {
         startActivity(Intent(this, LoginActivity::class.java))
         finish()
     }
 
-    fun navigateToLogin(name: String, email: String) {
+    override fun navigateToLogin(name: String, email: String, password: String) {
         val intent = Intent(this, LoginActivity::class.java)
-        intent.putExtra("user_email", email)
         intent.putExtra("user_name", name)
-        startActivity(intent)
-        finish()
-    }
-
-    fun navigateToLogin(name: String, email: String, password: String) {
-        val intent = Intent(this, LoginActivity::class.java)
         intent.putExtra("user_email", email)
-        intent.putExtra("user_name", name)
         intent.putExtra("user_password", password)
         startActivity(intent)
         finish()
