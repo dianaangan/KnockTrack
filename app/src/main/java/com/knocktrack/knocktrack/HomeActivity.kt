@@ -14,7 +14,7 @@ class HomeActivity : Activity(), HomeView {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
-
+        // dasdasd
         initViews()
         initPresenter()
         setupListeners()
