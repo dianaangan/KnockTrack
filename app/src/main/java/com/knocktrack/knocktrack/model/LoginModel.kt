@@ -1,5 +1,9 @@
-package com.knocktrack.knocktrack
+package com.knocktrack.knocktrack.model
 
+/**
+ * Model for Login domain logic.
+ * Encapsulates validation and simple authentication checks.
+ */
 class LoginModel {
     
     fun authenticate(email: String, password: String): Boolean {
@@ -33,3 +37,5 @@ class LoginModel {
         return checkEmailFormat(email) && checkPasswordNotEmpty(password)
     }
 }
+
+
