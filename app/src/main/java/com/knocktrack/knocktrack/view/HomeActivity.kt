@@ -25,29 +25,19 @@ class HomeActivity : Activity(), HomeView {
 
     /**
      * Android lifecycle: initializes the UI and wires MVP components.
-     * - Reads intent extras for the logged-in user
-     * - Hands data to Presenter for processing
+     * - Loads user data from Firebase Authentication
+     * - Displays user information or navigates to login if not authenticated
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
-    //jkhk
+
         initViews()
         initPresenter()
         setupListeners()
 
-        // Read user data provided by previous screen (e.g., Login)
-        val userName = intent.getStringExtra("user_name") ?: "User"
-        val userEmail = intent.getStringExtra("user_email") ?: "user@example.com"
-        val userPassword = intent.getStringExtra("user_password") ?: ""
-        
-        // Store in presenter so it can handle logout without re-reading intent
-        presenter.currentUserName = userName
-        presenter.currentUserEmail = userEmail
-        presenter.currentUserPassword = userPassword
-        
-        // Ask Presenter to validate and format data, and update the View
-        presenter.processUserData(userName, userEmail, userPassword)
+        // Load user data from Firebase instead of intent extras
+        presenter.loadUserData()
     }
 
     /** Binds views from the layout. */
@@ -84,19 +74,9 @@ class HomeActivity : Activity(), HomeView {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
-    /** Navigates to Login without payload. */
+    /** Navigates to Login screen. */
     override fun navigateToLogin() {
         startActivity(Intent(this, LoginActivity::class.java))
-        finish()
-    }
-
-    /** Navigates to Login and pre-fills known credentials. */
-    override fun navigateToLogin(name: String, email: String, password: String) {
-        val intent = Intent(this, LoginActivity::class.java)
-        intent.putExtra("user_name", name)
-        intent.putExtra("user_email", email)
-        intent.putExtra("user_password", password)
-        startActivity(intent)
         finish()
     }
 
