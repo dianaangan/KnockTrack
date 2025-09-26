@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "890569728388",
+    "firebase_url": "https://knocktrack-9c5c0-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "knocktrack-9c5c0",
+    "storage_bucket": "knocktrack-9c5c0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:890569728388:android:ec3ef3afe4ec90a9ee7dd1",
+        "android_client_info": {
+          "package_name": "com.knocktrack.knocktrack"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfQMwgLdLF4IPjUQqfEWS5idZuBbcv_6s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

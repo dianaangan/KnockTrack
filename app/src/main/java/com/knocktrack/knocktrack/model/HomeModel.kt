@@ -1,5 +1,9 @@
-package com.knocktrack.knocktrack
+package com.knocktrack.knocktrack.model
 
+/**
+ * Model for Home screen business logic and formatting.
+ * Pure functions that do not depend on Android UI.
+ */
 class HomeModel {
     
     fun validateUserData(name: String, email: String, password: String): Boolean {
@@ -30,3 +34,5 @@ class HomeModel {
         )
     }
 }
+
+

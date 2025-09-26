@@ -1,5 +1,9 @@
-package com.knocktrack.knocktrack
+package com.knocktrack.knocktrack.view
 
+/**
+ * Contract for the Login screen View in MVP.
+ * Implemented by `LoginActivity` and used by `LoginPresenter`.
+ */
 interface LoginView {
     fun showProgress()
     fun hideProgress()
@@ -12,3 +16,5 @@ interface LoginView {
     fun navigateToRegister()
     fun navigateToHome(name: String, email: String, password: String)
 }
+
+
