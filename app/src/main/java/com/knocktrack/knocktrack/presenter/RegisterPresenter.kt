@@ -2,6 +2,10 @@ package com.knocktrack.knocktrack.presenter
 
 import com.knocktrack.knocktrack.model.RegisterModel
 import com.knocktrack.knocktrack.view.RegisterView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Presenter for the Registration screen.
@@ -10,6 +14,7 @@ import com.knocktrack.knocktrack.view.RegisterView
 class RegisterPresenter {
     private var view: RegisterView? = null
     private val model = RegisterModel()
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     /** Called by View to start receiving updates. */
     fun attachView(view: RegisterView) {
@@ -26,7 +31,7 @@ class RegisterPresenter {
      * 1) Clear previous errors
      * 2) Validate presence and consistency
      * 3) Field-specific validation (name/email/password)
-     * 4) Mock registration
+     * 4) Firebase registration
      * 5) Notify View and navigate
      */
     fun register(email: String, firstName: String, lastName: String, password: String, confirmPassword: String) {
@@ -45,14 +50,41 @@ class RegisterPresenter {
         
         view?.showProgress()
         
-        if (model.registerUser(firstName.trim(), lastName.trim(), email.trim(), password)) {
-            val userData = model.prepareUserData(firstName, lastName, email, password)
-            view?.hideProgress()
-            // Use email and password only for login
-            view?.onRegisterSuccess(userData.second, userData.third)
-        } else {
-            view?.hideProgress()
-            view?.onRegisterFailed("Registration failed")
+        // Perform Firebase registration asynchronously
+        coroutineScope.launch {
+            try {
+                val result = model.registerUser(firstName.trim(), lastName.trim(), email.trim(), password)
+                
+                withContext(Dispatchers.Main) {
+                    view?.hideProgress()
+                    
+                    result.fold(
+                        onSuccess = { firebaseUser ->
+                            // Registration successful
+                            view?.onRegisterSuccess(email, password)
+                        },
+                        onFailure = { exception ->
+                            // Registration failed
+                            val errorMessage = when {
+                                exception.message?.contains("email address is already in use") == true -> 
+                                    "This email is already registered. Please use a different email or try logging in."
+                                exception.message?.contains("password") == true -> 
+                                    "Password is too weak. Please choose a stronger password."
+                                exception.message?.contains("network") == true -> 
+                                    "Network error. Please check your internet connection."
+                                else -> 
+                                    "Registration failed: ${exception.message ?: "Unknown error"}"
+                            }
+                            view?.onRegisterFailed(errorMessage)
+                        }
+                    )
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    view?.hideProgress()
+                    view?.onRegisterFailed("Registration failed: ${e.message ?: "Unknown error"}")
+                }
+            }
         }
     }
 

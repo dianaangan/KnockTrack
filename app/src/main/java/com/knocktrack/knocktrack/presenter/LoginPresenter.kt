@@ -2,6 +2,10 @@ package com.knocktrack.knocktrack.presenter
 
 import com.knocktrack.knocktrack.model.LoginModel
 import com.knocktrack.knocktrack.view.LoginView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Presenter for the Login screen.
@@ -10,6 +14,7 @@ import com.knocktrack.knocktrack.view.LoginView
 class LoginPresenter {
     private var view: LoginView? = null
     private val model = LoginModel()
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     /** Called by View to start receiving updates. */
     fun attachView(view: LoginView) {
@@ -26,7 +31,7 @@ class LoginPresenter {
      * 1) Clear previous errors
      * 2) Validate presence of fields
      * 3) Validate specific field formats
-     * 4) Authenticate
+     * 4) Firebase authentication
      * 5) Notify View of success/failure
      */
     fun login(email: String, password: String) {
@@ -42,13 +47,42 @@ class LoginPresenter {
         
         view?.showProgress()
         
-        if (model.authenticate(email.trim(), password)) {
-            val userData = model.prepareUserData(email, password)
-            view?.hideProgress()
-            view?.onLoginSuccess("User", userData.first, userData.second)
-        } else {
-            view?.hideProgress()
-            view?.onLoginFailed("Invalid email or password")
+        // Perform Firebase authentication asynchronously
+        coroutineScope.launch {
+            try {
+                val result = model.authenticate(email.trim(), password)
+                
+                withContext(Dispatchers.Main) {
+                    view?.hideProgress()
+                    
+                    result.fold(
+                        onSuccess = { firebaseUser ->
+                            // Login successful
+                            val userData = model.prepareUserData(email, password)
+                            view?.onLoginSuccess("User", userData.first, userData.second)
+                        },
+                        onFailure = { exception ->
+                            // Login failed
+                            val errorMessage = when {
+                                exception.message?.contains("user not found") == true -> 
+                                    "No account found with this email. Please check your email or register."
+                                exception.message?.contains("wrong password") == true -> 
+                                    "Incorrect password. Please try again."
+                                exception.message?.contains("network") == true -> 
+                                    "Network error. Please check your internet connection."
+                                else -> 
+                                    "Login failed: ${exception.message ?: "Invalid email or password"}"
+                            }
+                            view?.onLoginFailed(errorMessage)
+                        }
+                    )
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    view?.hideProgress()
+                    view?.onLoginFailed("Login failed: ${e.message ?: "Unknown error"}")
+                }
+            }
         }
     }
 

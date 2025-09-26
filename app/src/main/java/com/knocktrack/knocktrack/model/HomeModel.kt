@@ -1,37 +1,94 @@
 package com.knocktrack.knocktrack.model
 
+import com.knocktrack.knocktrack.service.FirebaseAuthService
+import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
 /**
  * Model for Home screen business logic and formatting.
- * Pure functions that do not depend on Android UI.
+ * Coordinates with Firebase Auth service for user data.
  */
 class HomeModel {
     
-    fun validateUserData(name: String, email: String, password: String): Boolean {
-        return name.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()
+    private val firebaseAuthService = FirebaseAuthService()
+    
+    /**
+     * Gets the current Firebase user.
+     * @return Current FirebaseUser or null if not signed in
+     */
+    fun getCurrentUser(): FirebaseUser? {
+        return firebaseAuthService.getCurrentUser()
     }
     
-    fun formatUserName(name: String): String {
-        return name.trim().replaceFirstChar { it.uppercase() }
+    /**
+     * Checks if a user is currently signed in.
+     * @return true if user is signed in, false otherwise
+     */
+    fun isUserSignedIn(): Boolean {
+        return firebaseAuthService.isUserSignedIn()
     }
     
+    /**
+     * Gets user profile data from Firebase Database.
+     * @param userId User's UID
+     * @param callback Callback to handle the result
+     */
+    fun getUserProfile(userId: String, callback: (Result<Map<String, Any>>) -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val result = firebaseAuthService.getUserProfile(userId)
+            withContext(Dispatchers.Main) {
+                callback(result)
+            }
+        }
+    }
+    
+    /**
+     * Signs out the current user.
+     */
+    fun signOut() {
+        firebaseAuthService.signOut()
+    }
+    
+    /**
+     * Formats a display name from first and last name.
+     * @param firstName User's first name
+     * @param lastName User's last name
+     * @return Formatted display name
+     */
+    fun formatDisplayName(firstName: String, lastName: String): String {
+        val formattedFirst = firstName.trim().replaceFirstChar { it.uppercase() }
+        val formattedLast = lastName.trim().replaceFirstChar { it.uppercase() }
+        return "$formattedFirst $formattedLast"
+    }
+    
+    /**
+     * Formats email for display.
+     * @param email User's email
+     * @return Formatted email
+     */
     fun formatUserEmail(email: String): String {
         return email.trim().lowercase()
     }
     
-    fun getUserDisplayName(name: String): String {
-        return "Welcome, ${formatUserName(name)}!"
+    /**
+     * Creates a welcome message with the user's name.
+     * @param displayName User's formatted display name
+     * @return Welcome message
+     */
+    fun getWelcomeMessage(displayName: String): String {
+        return "Welcome, $displayName!"
     }
     
-    fun getUserDisplayEmail(email: String): String {
+    /**
+     * Creates an email display string.
+     * @param email User's email
+     * @return Email display string
+     */
+    fun getEmailDisplay(email: String): String {
         return "Email: ${formatUserEmail(email)}"
-    }
-    
-    fun prepareLogoutData(name: String, email: String, password: String): Triple<String, String, String> {
-        return Triple(
-            formatUserName(name),
-            formatUserEmail(email),
-            password
-        )
     }
 }
 

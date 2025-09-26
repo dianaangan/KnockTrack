@@ -1,13 +1,31 @@
 package com.knocktrack.knocktrack.model
 
+import com.knocktrack.knocktrack.service.FirebaseAuthService
+import com.google.firebase.auth.FirebaseUser
+
 /**
  * Model for Registration logic.
- * Performs validation and prepares normalized user data.
+ * Performs validation and coordinates with Firebase Auth service.
  */
 class RegisterModel {
     
-    fun registerUser(firstName: String, lastName: String, email: String, password: String): Boolean {
-        return true
+    private val firebaseAuthService = FirebaseAuthService()
+    
+    /**
+     * Registers a new user with Firebase Authentication.
+     * @param firstName User's first name
+     * @param lastName User's last name
+     * @param email User's email address
+     * @param password User's password
+     * @return Result containing FirebaseUser on success or Exception on failure
+     */
+    suspend fun registerUser(
+        firstName: String, 
+        lastName: String, 
+        email: String, 
+        password: String
+    ): Result<FirebaseUser> {
+        return firebaseAuthService.registerUser(email, password, firstName, lastName)
     }
     
     fun validateRegistrationData(firstName: String, lastName: String, email: String, password: String, confirmPassword: String): Boolean {
