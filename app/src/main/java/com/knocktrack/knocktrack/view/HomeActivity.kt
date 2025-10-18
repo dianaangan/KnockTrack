@@ -45,6 +45,37 @@ class HomeActivity : Activity(), HomeView {
         tvWelcome = findViewById(R.id.tvWelcome)
         tvEmail = findViewById(R.id.tvEmail)
         btnLogout = findViewById(R.id.btnLogout)
+        
+        // Bottom navigation views
+        val navHome = findViewById<LinearLayout>(R.id.navHome)
+        val navHistory = findViewById<LinearLayout>(R.id.navHistory)
+        val navSettings = findViewById<LinearLayout>(R.id.navSettings)
+        
+        // Content buttons
+        val btnHistory = findViewById<Button>(R.id.btnHistory)
+        val btnMute = findViewById<Button>(R.id.btnMute)
+        
+        // Set up navigation listeners
+        navHome.setOnClickListener {
+            // Already on home, do nothing
+        }
+        
+        navHistory.setOnClickListener {
+            navigateToHistory()
+        }
+        
+        navSettings.setOnClickListener {
+            navigateToSettings()
+        }
+        
+        btnHistory.setOnClickListener {
+            navigateToHistory()
+        }
+        
+        btnMute.setOnClickListener {
+            // TODO: Implement mute functionality
+            Toast.makeText(this, "Mute feature coming soon", Toast.LENGTH_SHORT).show()
+        }
     }
 
     /** Creates the Presenter and attaches this Activity as its View. */
@@ -62,8 +93,12 @@ class HomeActivity : Activity(), HomeView {
 
     /** Renders the formatted user data from the Presenter. */
     override fun showUserData(name: String, email: String) {
-        tvWelcome.text = "Welcome, $name!"
-        tvEmail.text = "Email: $email"
+        // Extract name from welcome message (format: "Welcome, John Doe!")
+        val nameOnly = name.replace("Welcome, ", "").replace("!", "").trim()
+        val firstName = nameOnly.split(" ").firstOrNull() ?: "User"
+        
+        tvWelcome.text = "Welcome, $firstName"
+        tvEmail.visibility = android.view.View.GONE
     }
 
     override fun onLogoutSuccess() {
@@ -79,12 +114,24 @@ class HomeActivity : Activity(), HomeView {
         startActivity(Intent(this, LoginActivity::class.java))
         finish()
     }
+    
+    /** Navigates to History screen. */
+    private fun navigateToHistory() {
+        startActivity(Intent(this, HistoryActivity::class.java))
+    }
+    
+    /** Navigates to Settings screen. */
+    private fun navigateToSettings() {
+        startActivity(Intent(this, SettingActivity::class.java))
+    }
 
     /** Detaches Presenter to avoid memory leaks. */
     override fun onDestroy() {
         presenter.detachView()
         super.onDestroy()
     }
+
+
 }
 
 
