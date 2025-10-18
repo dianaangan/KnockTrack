@@ -36,7 +36,6 @@
             android:orientation="vertical"
             android:padding="24dp"
             android:layout_marginTop="50dp"
-            android:layout_marginBottom="50dp"
             android:elevation="6dp"
             android:clipToOutline="true">
 
@@ -61,7 +60,7 @@
                 android:id="@+id/etFirstName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="First Name"
+                android:hint="Enter your first name"
                 android:inputType="textPersonName"
                 android:padding="12dp"
                 android:layout_marginBottom="16dp"
@@ -80,7 +79,7 @@
                 android:id="@+id/etLastName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Last Name"
+                android:hint="Enter your last name"
                 android:inputType="textPersonName"
                 android:padding="12dp"
                 android:layout_marginBottom="16dp"
@@ -118,7 +117,7 @@
                 android:id="@+id/etPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Password"
+                android:hint="Enter your password"
                 android:inputType="textPassword"
                 android:padding="12dp"
                 android:layout_marginBottom="16dp"
@@ -137,30 +136,36 @@
                 android:id="@+id/etConfirmPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Confirm Password"
+                android:hint="Confirm your password"
                 android:inputType="textPassword"
                 android:padding="12dp"
                 android:layout_marginBottom="40dp"
                 android:background="@drawable/edittext_border"
                 android:textColor="@color/colorDark" />
 
-            <Button
-                android:id="@+id/btnRegister"
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Register"
-                android:background="@drawable/rounded_button"
-                android:textColor="@color/white"
-                android:layout_marginBottom="25dp"
-                android:padding="12dp" />
+                android:layout_marginBottom="25dp">
 
-            <ProgressBar
-                android:id="@+id/progressBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="gone"
-                android:layout_marginTop="16dp" />
+                <Button
+                    android:id="@+id/btnRegister"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Register"
+                    android:background="@drawable/rounded_button"
+                    android:textColor="@color/white"
+                    android:padding="12dp" />
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_centerInParent="true"
+                    android:visibility="gone"
+                    android:indeterminateTint="@color/white" />
+
+            </RelativeLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"

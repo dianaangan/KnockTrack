@@ -76,12 +76,14 @@ class RegisterActivity : Activity(), RegisterView {
     /** Shows loading during registration. */
     override fun showProgress() {
         progressBar.visibility = View.VISIBLE
+        btnRegister.text = ""  // Hide button text to show loading indicator
         btnRegister.isEnabled = false
     }
 
     /** Hides loading after registration completes. */
     override fun hideProgress() {
         progressBar.visibility = View.GONE
+        btnRegister.text = "Register"  // Restore button text
         btnRegister.isEnabled = true
     }
 

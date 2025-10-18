@@ -7,7 +7,7 @@ import com.google.firebase.auth.FirebaseUser
  * Model for Registration logic.
  * Performs validation and coordinates with Firebase Auth service.
  */
-class   RegisterModel {
+class RegisterModel {
     
     private val firebaseAuthService = FirebaseAuthService()
     

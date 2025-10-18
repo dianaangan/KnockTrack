@@ -68,14 +68,15 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
-    
+
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-auth")
-    
+
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation(libs.androidx.activity)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
