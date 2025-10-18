@@ -70,12 +70,14 @@ class LoginActivity : Activity(), LoginView {
     /** Shows progress while the Presenter performs work. */
     override fun showProgress() {
         progressBar.visibility = View.VISIBLE
+        btnLogin.text = ""  // Hide button text to show loading indicator
         btnLogin.isEnabled = false
     }
 
     /** Hides progress after the Presenter completes work. */
     override fun hideProgress() {
         progressBar.visibility = View.GONE
+        btnLogin.text = "Sign in"  // Restore button text
         btnLogin.isEnabled = true
     }
 
