@@ -45,46 +45,50 @@
                 android:layout_height="120dp"
                 android:src="@drawable/ic_knocktrack_logo"
                 android:layout_gravity="center"
-                android:layout_marginBottom="16dp"
-                android:layout_marginTop="20dp" />
+                android:layout_marginBottom="12dp"
+                android:layout_marginTop="16dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="First Name"
+                android:text="Lastname"
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="16sp"
-                android:layout_marginBottom="8dp" />
-
-            <EditText
-                android:id="@+id/etFirstName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter your first name"
-                android:inputType="textPersonName"
-                android:padding="12dp"
-                android:layout_marginBottom="16dp"
-                android:background="@drawable/edittext_border"
-                android:textColor="@color/colorDark" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Last Name"
-                android:textColor="@color/colorPrimaryDark"
-                android:textSize="16sp"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="6dp" />
 
             <EditText
                 android:id="@+id/etLastName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter your last name"
+                android:hint="Lastname"
                 android:inputType="textPersonName"
                 android:padding="12dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/edittext_border"
-                android:textColor="@color/colorDark" />
+                android:textColor="@color/colorDark"
+                android:fontFamily="sans-serif"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Firstname"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="16sp"
+                android:layout_marginBottom="6dp" />
+
+            <EditText
+                android:id="@+id/etFirstName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Firstname"
+                android:inputType="textPersonName"
+                android:padding="12dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/edittext_border"
+                android:textColor="@color/colorDark"
+                android:fontFamily="sans-serif"
+                android:textSize="14sp" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -92,18 +96,20 @@
                 android:text="Email"
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="16sp"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="6dp" />
 
             <EditText
                 android:id="@+id/etEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="example@gmail.com"
+                android:hint="Email"
                 android:inputType="textEmailAddress"
                 android:padding="12dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/edittext_border"
-                android:textColor="@color/colorDark" />
+                android:textColor="@color/colorDark"
+                android:fontFamily="sans-serif"
+                android:textSize="14sp" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -111,18 +117,38 @@
                 android:text="Password"
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="16sp"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="6dp" />
 
-            <EditText
-                android:id="@+id/etPassword"
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter your password"
-                android:inputType="textPassword"
-                android:padding="12dp"
-                android:layout_marginBottom="16dp"
-                android:background="@drawable/edittext_border"
-                android:textColor="@color/colorDark" />
+                android:layout_marginBottom="12dp">
+
+                <EditText
+                    android:id="@+id/etPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Password"
+                    android:inputType="textPassword"
+                    android:padding="12dp"
+                    android:paddingEnd="40dp"
+                    android:background="@drawable/edittext_border"
+                    android:textColor="@color/colorDark"
+                    android:fontFamily="sans-serif"
+                    android:textSize="14sp" />
+
+                <ImageView
+                    android:id="@+id/ivPasswordToggle"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="12dp"
+                    android:src="@drawable/ic_eye_closed"
+                    android:contentDescription="Toggle password visibility"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </RelativeLayout>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -130,18 +156,38 @@
                 android:text="Confirm Password"
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="16sp"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="6dp" />
 
-            <EditText
-                android:id="@+id/etConfirmPassword"
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Confirm your password"
-                android:inputType="textPassword"
-                android:padding="12dp"
-                android:layout_marginBottom="40dp"
-                android:background="@drawable/edittext_border"
-                android:textColor="@color/colorDark" />
+                android:layout_marginBottom="24dp">
+
+                <EditText
+                    android:id="@+id/etConfirmPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Confirm password"
+                    android:inputType="textPassword"
+                    android:padding="12dp"
+                    android:paddingEnd="40dp"
+                    android:background="@drawable/edittext_border"
+                    android:textColor="@color/colorDark"
+                    android:fontFamily="sans-serif"
+                    android:textSize="14sp" />
+
+                <ImageView
+                    android:id="@+id/ivConfirmPasswordToggle"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="12dp"
+                    android:src="@drawable/ic_eye_closed"
+                    android:contentDescription="Toggle password visibility"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </RelativeLayout>
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -151,16 +197,17 @@
                 <Button
                     android:id="@+id/btnRegister"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="48dp"
                     android:text="Register"
+                    android:textSize="15sp"
                     android:background="@drawable/rounded_button"
                     android:textColor="@color/white"
                     android:padding="12dp" />
 
                 <ProgressBar
                     android:id="@+id/progressBar"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_centerInParent="true"
                     android:visibility="gone"
                     android:indeterminateTint="@color/white" />

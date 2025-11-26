@@ -5,18 +5,18 @@
     android:background="@drawable/ic_background_design1">
 
     <!-- Fixed Header at Top -->
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/headerLayout"
         android:layout_width="match_parent"
         android:layout_height="110dp"
         android:layout_alignParentTop="true"
-        android:orientation="horizontal"
         android:background="@drawable/rounded_bottom_corners_white"
         android:paddingTop="50dp"
         android:paddingBottom="24dp"
         android:paddingStart="24dp"
         android:paddingEnd="24dp"
-        android:elevation="8dp">
+        android:elevation="8dp"
+        android:clipToPadding="false">
 
         <ImageView
             android:id="@+id/btnBack"
@@ -24,29 +24,21 @@
             android:layout_height="24dp"
             android:src="@drawable/ic_back"
             android:contentDescription="Back"
-            android:layout_marginEnd="16dp" />
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true" />
 
-        <!-- Title -->
+        <!-- Title - Centered -->
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="Settings"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@android:color/black"
-            android:gravity="center" />
-
-        <!-- Menu Icon -->
-        <ImageView
-            android:id="@+id/btnMenu"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_menu"
-            android:contentDescription="Menu"
-            android:layout_marginStart="16dp" />
-    </LinearLayout>
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true" />
+    </RelativeLayout>
 
     <!-- Scrollable Content (between header and nav) -->
     <ScrollView
@@ -67,164 +59,155 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="40dp"
-                android:layout_marginStart="32dp"
-                android:layout_marginEnd="32dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
                 android:layout_marginBottom="24dp"
                 android:background="@drawable/rounded_top_corners"
                 android:orientation="vertical"
                 android:padding="24dp"
                 android:elevation="6dp">
 
-                <!-- WiFi Setup Section -->
+                <!-- Doorbell Connection Section -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="WiFi Setup:"
-                    android:textColor="@android:color/black"
-                    android:textSize="16sp"
+                    android:text="Connect to Your Doorbell"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:textSize="18sp"
                     android:textStyle="bold"
-                    android:layout_marginBottom="12dp" />
+                    android:layout_marginBottom="20dp" />
 
-                <!-- SSID Label -->
+                <!-- Device ID Label -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="SSID:"
-                    android:textColor="#666666"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="4dp" />
+                    android:text="Device ID"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:textSize="16sp"
+                    android:layout_marginBottom="6dp" />
 
-                <!-- SSID Input -->
+                <!-- Device ID Input -->
                 <EditText
-                    android:id="@+id/etSSID"
+                    android:id="@+id/etDeviceId"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:background="@drawable/input_bg"
-                    android:hint="MyWiFiNetwork"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/edittext_border"
+                    android:hint="Device ID"
+                    android:paddingStart="18dp"
+                    android:paddingEnd="18dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
                     android:textSize="14sp"
-                    android:layout_marginBottom="12dp" />
+                    android:textColor="@color/colorDark"
+                    android:fontFamily="sans-serif"
+                    android:layout_marginBottom="16dp" />
 
-                <!-- Password Label -->
+                <!-- Authentication Key Label -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Password:"
-                    android:textColor="#666666"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="4dp" />
+                    android:text="Auth Key"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:textSize="16sp"
+                    android:layout_marginBottom="6dp" />
 
-                <!-- Password Input -->
+                <!-- Authentication Key Input -->
                 <EditText
-                    android:id="@+id/etPassword"
+                    android:id="@+id/etAuthKey"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:background="@drawable/input_bg"
-                    android:hint="••••••••"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/edittext_border"
+                    android:hint="Auth Key"
                     android:inputType="textPassword"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
+                    android:paddingStart="18dp"
+                    android:paddingEnd="18dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
                     android:textSize="14sp"
+                    android:textColor="@color/colorDark"
+                    android:fontFamily="sans-serif"
+                    android:layout_marginBottom="20dp" />
+
+                <!-- Connect Button -->
+                <Button
+                    android:id="@+id/btnSaveConfig"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Connect to Doorbell"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="13sp"
+                    android:textStyle="normal"
+                    android:textAllCaps="false"
+                    android:background="@drawable/rounded_button_logout"
+                    android:minWidth="0dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
                     android:layout_marginBottom="12dp" />
 
-                <!-- Status -->
+                <!-- Reset Button (shown when connected) -->
+                <Button
+                    android:id="@+id/btnReset"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Reset Connection"
+                    android:textColor="#F44336"
+                    android:textSize="13sp"
+                    android:textStyle="normal"
+                    android:textAllCaps="false"
+                    android:background="@drawable/rounded_button_logout"
+                    android:minWidth="0dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:layout_marginBottom="24dp"
+                    android:visibility="gone" />
+
+                <!-- Connection Status -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="24dp">
+                    android:layout_marginBottom="24dp"
+                    android:gravity="center_vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Status:  "
+                        android:text="Doorbell Status:"
                         android:textColor="#666666"
-                        android:textSize="14sp" />
+                        android:textSize="14sp"
+                        android:layout_marginEnd="8dp" />
 
                     <TextView
+                        android:id="@+id/tvDeviceStatus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Connected ✓"
-                        android:textColor="#4CAF50"
+                        android:text="Not Connected"
+                        android:textColor="#F44336"
                         android:textSize="14sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- Notification Settings Section -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Notification Settings:"
-                    android:textColor="@android:color/black"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="12dp" />
-
-                <!-- Enable Notifications Checkbox -->
-                <CheckBox
-                    android:id="@+id/cbEnableNotifications"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Enable Notifications"
-                    android:textColor="@android:color/black"
-                    android:textSize="14sp"
-                    android:checked="true"
-                    android:layout_marginBottom="12dp" />
-
-                <!-- Choose Label -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Choose:"
-                    android:textColor="#666666"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="8dp" />
-
-                <!-- Radio Group for Notification Type -->
-                <RadioGroup
-                    android:id="@+id/rgNotificationType"
+                <!-- Divider -->
+                <View
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="24dp">
-
-                    <RadioButton
-                        android:id="@+id/rbSound"
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:text="Sound"
-                        android:textSize="14sp"
-                        android:checked="true" />
-
-                    <RadioButton
-                        android:id="@+id/rbVibration"
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:text="Vibration"
-                        android:textSize="14sp" />
-
-                    <RadioButton
-                        android:id="@+id/rbBoth"
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:text="Both"
-                        android:textSize="14sp" />
-                </RadioGroup>
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0"
+                    android:layout_marginBottom="24dp" />
 
                 <!-- About Section -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="About:"
-                    android:textColor="@android:color/black"
-                    android:textSize="16sp"
+                    android:text="About"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:textSize="18sp"
                     android:textStyle="bold"
-                    android:layout_marginBottom="8dp" />
+                    android:layout_marginBottom="12dp" />
 
                 <!-- Version -->
                 <TextView
@@ -233,7 +216,7 @@
                     android:text="Version: v1.0"
                     android:textColor="#666666"
                     android:textSize="14sp"
-                    android:layout_marginBottom="4dp" />
+                    android:layout_marginBottom="8dp" />
 
                 <!-- Device -->
                 <TextView

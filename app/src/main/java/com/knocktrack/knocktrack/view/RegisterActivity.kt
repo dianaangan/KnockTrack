@@ -3,6 +3,7 @@ package com.knocktrack.knocktrack.view
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.view.View
 import android.widget.*
 import com.knocktrack.knocktrack.R
@@ -23,6 +24,10 @@ class RegisterActivity : Activity(), RegisterView {
     private lateinit var btnRegister: Button
     private lateinit var tvLogin: TextView
     private lateinit var progressBar: ProgressBar
+    private lateinit var ivPasswordToggle: ImageView
+    private lateinit var ivConfirmPasswordToggle: ImageView
+    private var isPasswordVisible = false
+    private var isConfirmPasswordVisible = false
 
     /** Initializes UI, presenter, and interaction handlers. */
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,6 +49,8 @@ class RegisterActivity : Activity(), RegisterView {
         btnRegister = findViewById(R.id.btnRegister)
         tvLogin = findViewById(R.id.tvLogin)
         progressBar = findViewById(R.id.progressBar)
+        ivPasswordToggle = findViewById(R.id.ivPasswordToggle)
+        ivConfirmPasswordToggle = findViewById(R.id.ivConfirmPasswordToggle)
     }
 
     /** Creates presenter and attaches this Activity as View. */
@@ -56,6 +63,7 @@ class RegisterActivity : Activity(), RegisterView {
      * Wires clicks to Presenter actions:
      * - Register button submits the form
      * - Login link navigates back to Login
+     * - Password toggle icons show/hide passwords
      */
     private fun setupListeners() {
         btnRegister.setOnClickListener {
@@ -71,6 +79,42 @@ class RegisterActivity : Activity(), RegisterView {
         tvLogin.setOnClickListener {
             presenter.goToLogin()
         }
+
+        ivPasswordToggle.setOnClickListener {
+            togglePasswordVisibility()
+        }
+
+        ivConfirmPasswordToggle.setOnClickListener {
+            toggleConfirmPasswordVisibility()
+        }
+    }
+
+    /** Toggles password visibility for the password field. */
+    private fun togglePasswordVisibility() {
+        isPasswordVisible = !isPasswordVisible
+        if (isPasswordVisible) {
+            etPassword.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+            ivPasswordToggle.setImageResource(R.drawable.ic_eye_open)
+        } else {
+            etPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            ivPasswordToggle.setImageResource(R.drawable.ic_eye_closed)
+        }
+        // Move cursor to end
+        etPassword.setSelection(etPassword.text.length)
+    }
+
+    /** Toggles password visibility for the confirm password field. */
+    private fun toggleConfirmPasswordVisibility() {
+        isConfirmPasswordVisible = !isConfirmPasswordVisible
+        if (isConfirmPasswordVisible) {
+            etConfirmPassword.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+            ivConfirmPasswordToggle.setImageResource(R.drawable.ic_eye_open)
+        } else {
+            etConfirmPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            ivConfirmPasswordToggle.setImageResource(R.drawable.ic_eye_closed)
+        }
+        // Move cursor to end
+        etConfirmPassword.setSelection(etConfirmPassword.text.length)
     }
 
     /** Shows loading during registration. */

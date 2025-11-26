@@ -5,18 +5,18 @@
     android:background="@drawable/ic_background_design1">
 
     <!-- Fixed Header at Top -->
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/headerLayout"
         android:layout_width="match_parent"
         android:layout_height="110dp"
         android:layout_alignParentTop="true"
-        android:orientation="horizontal"
         android:background="@drawable/rounded_bottom_corners_white"
         android:paddingTop="50dp"
         android:paddingBottom="24dp"
         android:paddingStart="24dp"
         android:paddingEnd="24dp"
-        android:elevation="8dp">
+        android:elevation="8dp"
+        android:clipToPadding="false">
 
         <ImageView
             android:id="@+id/btnBack"
@@ -24,29 +24,41 @@
             android:layout_height="24dp"
             android:src="@drawable/ic_back"
             android:contentDescription="Back"
-            android:layout_marginEnd="16dp" />
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true" />
 
-        <!-- Title -->
+        <!-- Title - Centered -->
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="History"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@android:color/black"
-            android:gravity="center" />
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true" />
 
-        <!-- Menu Icon -->
-        <ImageView
-            android:id="@+id/btnMenu"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_menu"
-            android:contentDescription="Menu"
-            android:layout_marginStart="16dp" />
-    </LinearLayout>
+        <!-- Clear History Button -->
+        <Button
+            android:id="@+id/btnClearHistory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Clear All"
+            android:textSize="13sp"
+            android:textStyle="normal"
+            android:textAllCaps="false"
+            android:background="@drawable/rounded_button_logout"
+            android:textColor="@color/colorPrimary"
+            android:gravity="center"
+            android:minWidth="0dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true" />
+    </RelativeLayout>
 
     <!-- Scrollable Content (between header and nav) -->
     <ScrollView
@@ -76,94 +88,32 @@
                 android:padding="16dp"
                 android:elevation="6dp">
 
-                <!-- First History Item -->
-                <LinearLayout
+                <!-- Progress Bar -->
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
+
+                <!-- Empty State -->
+                <TextView
+                    android:id="@+id/tvEmptyState"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No doorbell events yet\nPress the doorbell to see history here"
+                    android:textAlignment="center"
+                    android:textColor="#666666"
+                    android:textSize="14sp"
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
+
+                <!-- RecyclerView for doorbell events -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:background="@drawable/history_item_bg"
-                    android:padding="10dp"
-                    android:layout_marginBottom="10dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🔔 Someone pressed the doorbell"
-                        android:textColor="@android:color/black"
-                        android:textSize="15sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="10:32 AM"
-                        android:textColor="#666666"
-                        android:textSize="12sp"
-                        android:layout_marginTop="2dp"
-                        android:layout_gravity="right" />
-                </LinearLayout>
-
-                <!-- Second History Item -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:background="@drawable/history_item_bg"
-                    android:padding="10dp"
-                    android:layout_marginBottom="10dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🔔 Someone pressed the doorbell"
-                        android:textColor="@android:color/black"
-                        android:textSize="15sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="7:14 PM"
-                        android:textColor="#666666"
-                        android:textSize="12sp"
-                        android:layout_marginTop="2dp"
-                        android:layout_gravity="right" />
-                </LinearLayout>
-
-                <!-- Third History Item -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:background="@drawable/history_item_bg"
-                    android:padding="10dp"
-                    android:layout_marginBottom="24dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🔔 Someone pressed the doorbell"
-                        android:textColor="@android:color/black"
-                        android:textSize="15sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Yesterday 5:45 PM"
-                        android:textColor="#666666"
-                        android:textSize="12sp"
-                        android:layout_marginTop="2dp"
-                        android:layout_gravity="right" />
-                </LinearLayout>
-
-                <!-- Clear History Button -->
-                <Button
-                    android:id="@+id/btnClearHistory"
-                    android:layout_width="150dp"
-                    android:layout_height="wrap_content"
-                    android:text="Clear History"
-                    android:layout_marginTop="20dp"
-                    android:background="@drawable/rounded_button_red"
-                    android:textColor="@android:color/white"
-                    android:layout_gravity="center_horizontal" />
+                    android:visibility="visible" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

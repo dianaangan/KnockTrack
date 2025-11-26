@@ -74,8 +74,8 @@
         <!-- Get Started Button -->
         <Button
             android:id="@+id/getStartedButton"
-            android:layout_width="300dp"
-            android:layout_height="44dp"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
             android:text="Get Started"
             android:textSize="15sp"
             android:textStyle="bold"
@@ -85,15 +85,15 @@
             android:layout_marginBottom="10dp"
             android:layout_marginTop="80dp"
             android:elevation="2dp"
-            android:padding="8dp"/>
+            android:padding="12dp"/>
 
         <!-- I Already Have Account Button -->
         <Button
             android:id="@+id/loginText"
-            android:layout_width="300dp"
-            android:layout_height="44dp"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
             android:text="I already have an account"
-            android:textSize="13sp"
+            android:textSize="15sp"
             android:textStyle="bold"
             android:background="@drawable/rounded_button_outline"
             android:textColor="#0081C1"
@@ -101,6 +101,6 @@
             android:clickable="true"
             android:focusable="true"
             android:elevation="1dp"
-            android:padding="8dp"/>
+            android:padding="12dp"/>
     </LinearLayout>
 </ScrollView>

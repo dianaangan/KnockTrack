@@ -14,4 +14,6 @@
     <color name="grayBackground">#EBEBF5</color>
     <color name="green">#34A853</color>
     <color name="googleButtonBg">#FBC02D</color>
+    <color name="blue_light">#E3F2FD</color>
+    <color name="blue_primary">#2196F3</color>
 </resources>
