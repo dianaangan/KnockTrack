@@ -64,12 +64,16 @@ class LoginPresenter {
                         onFailure = { exception ->
                             // Login failed
                             val errorMessage = when {
-                                exception.message?.contains("user not found") == true -> 
+                                exception.message?.contains("user not found", ignoreCase = true) == true -> 
                                     "No account found with this email. Please check your email or register."
-                                exception.message?.contains("wrong password") == true -> 
+                                exception.message?.contains("wrong password", ignoreCase = true) == true -> 
                                     "Incorrect password. Please try again."
-                                exception.message?.contains("network") == true -> 
+                                exception.message?.contains("network", ignoreCase = true) == true -> 
                                     "Network error. Please check your internet connection."
+                                exception.message?.contains("chain validation", ignoreCase = true) == true -> 
+                                    "Connection error. Please check your internet connection and try again."
+                                exception.message?.contains("internal error", ignoreCase = true) == true -> 
+                                    "Connection error. Please check your internet connection and try again."
                                 else -> 
                                     "Login failed: ${exception.message ?: "Invalid email or password"}"
                             }
@@ -80,7 +84,17 @@ class LoginPresenter {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     view?.hideProgress()
-                    view?.onLoginFailed("Login failed: ${e.message ?: "Unknown error"}")
+                    val errorMessage = when {
+                        e.message?.contains("chain validation", ignoreCase = true) == true -> 
+                            "Connection error. Please check your internet connection and try again."
+                        e.message?.contains("internal error", ignoreCase = true) == true -> 
+                            "Connection error. Please check your internet connection and try again."
+                        e.message?.contains("network", ignoreCase = true) == true -> 
+                            "Network error. Please check your internet connection."
+                        else -> 
+                            "Login failed: ${e.message ?: "Unknown error"}"
+                    }
+                    view?.onLoginFailed(errorMessage)
                 }
             }
         }

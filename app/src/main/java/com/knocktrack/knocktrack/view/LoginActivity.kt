@@ -3,6 +3,7 @@ package com.knocktrack.knocktrack.view
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.view.View
 import android.widget.*
 import com.knocktrack.knocktrack.R
@@ -20,6 +21,8 @@ class LoginActivity : Activity(), LoginView {
     private lateinit var btnLogin: Button
     private lateinit var tvRegister: TextView
     private lateinit var progressBar: ProgressBar
+    private lateinit var ivPasswordToggle: ImageView
+    private var isPasswordVisible = false
 
     /** Sets up UI, presenter, listeners, and restores any passed state. */
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,6 +47,7 @@ class LoginActivity : Activity(), LoginView {
         btnLogin = findViewById(R.id.btnLogin)
         tvRegister = findViewById(R.id.tvRegister)
         progressBar = findViewById(R.id.progressBar)
+        ivPasswordToggle = findViewById(R.id.ivPasswordToggle)
     }
 
     /** Creates presenter and attaches this Activity as the View. */
@@ -56,6 +60,7 @@ class LoginActivity : Activity(), LoginView {
      * Routes UI interactions to Presenter methods.
      * - Login button -> presenter.login
      * - Register link -> presenter.goToRegister
+     * - Password toggle icon shows/hides password
      */
     private fun setupListeners() {
         btnLogin.setOnClickListener {
@@ -65,6 +70,24 @@ class LoginActivity : Activity(), LoginView {
         tvRegister.setOnClickListener {
             presenter.goToRegister()
         }
+
+        ivPasswordToggle.setOnClickListener {
+            togglePasswordVisibility()
+        }
+    }
+
+    /** Toggles password visibility for the password field. */
+    private fun togglePasswordVisibility() {
+        isPasswordVisible = !isPasswordVisible
+        if (isPasswordVisible) {
+            etPassword.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+            ivPasswordToggle.setImageResource(R.drawable.ic_eye_open)
+        } else {
+            etPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            ivPasswordToggle.setImageResource(R.drawable.ic_eye_closed)
+        }
+        // Move cursor to end
+        etPassword.setSelection(etPassword.text.length)
     }
 
     /** Shows progress while the Presenter performs work. */
@@ -77,7 +100,7 @@ class LoginActivity : Activity(), LoginView {
     /** Hides progress after the Presenter completes work. */
     override fun hideProgress() {
         progressBar.visibility = View.GONE
-        btnLogin.text = "Sign in"  // Restore button text
+        btnLogin.text = "LOGIN"  // Restore button text
         btnLogin.isEnabled = true
     }
 
@@ -123,6 +146,7 @@ class LoginActivity : Activity(), LoginView {
     /** Navigates to the home screen with user context. */
     override fun navigateToHome(name: String, email: String, password: String) {
         val intent = Intent(this, HomeActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         intent.putExtra("user_name", name)
         intent.putExtra("user_email", email)
         intent.putExtra("user_password", password)
@@ -134,6 +158,14 @@ class LoginActivity : Activity(), LoginView {
     override fun onDestroy() {
         presenter.detachView()
         super.onDestroy()
+    }
+
+    /**
+     * Disable back navigation to previous screens once we are on the login screen
+     * (e.g., after logout). Keeps the user on Login until they authenticate again.
+     */
+    override fun onBackPressed() {
+        // Do nothing to keep user on Login screen
     }
 }
 
