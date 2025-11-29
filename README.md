@@ -181,10 +181,15 @@ This project is maintained privately by Diana Angan. Contact the owner for licen
 
 ---
 
-## 👤 Author
+## 👤 Author & Collaborators
 
-- **Diana Angan**
-- GitHub: [@dianaangan](https://github.com/dianaangan)
+- **Author:** Diana Angan  
+  GitHub: [@dianaangan](https://github.com/dianaangan)
+
+- **Collaborators:**  
+  - Alek-alt  
+  - Elf (Eleftheria02)  
+  - jisaapyt1
 
 ---
 
