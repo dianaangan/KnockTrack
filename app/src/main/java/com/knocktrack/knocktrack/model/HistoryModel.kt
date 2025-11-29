@@ -143,6 +143,8 @@ class HistoryModel {
         return try {
             val events = getAllDoorbellEvents(context)
             val now = System.currentTimeMillis()
+            
+            // Calculate today start (midnight today in milliseconds)
             val todayStart = java.util.Calendar.getInstance().apply {
                 set(java.util.Calendar.HOUR_OF_DAY, 0)
                 set(java.util.Calendar.MINUTE, 0)
@@ -150,14 +152,43 @@ class HistoryModel {
                 set(java.util.Calendar.MILLISECOND, 0)
             }.timeInMillis
             
+            // Calculate week start (7 days ago from today start)
             val weekStart = todayStart - (7 * 24 * 60 * 60 * 1000L)
             
+            // Normalize timestamps - handle both seconds and milliseconds
+            // If timestamp is less than 1e12 (1 trillion), it's likely in seconds
+            // Current timestamps in milliseconds are around 1.7 trillion (1.7e12)
+            val normalizeTimestamp: (Long) -> Long = { timestamp ->
+                if (timestamp > 0 && timestamp < 1_000_000_000_000L) {
+                    // Likely in seconds, convert to milliseconds
+                    timestamp * 1000L
+                } else {
+                    // Already in milliseconds
+                    timestamp
+                }
+            }
+            
             val totalCount = events.size
-            val todayCount = events.count { it.timestamp >= todayStart }
-            val weekCount = events.count { it.timestamp >= weekStart }
+            val todayCount = events.count { 
+                val normalizedTimestamp = normalizeTimestamp(it.timestamp)
+                normalizedTimestamp >= todayStart 
+            }
+            val weekCount = events.count { 
+                val normalizedTimestamp = normalizeTimestamp(it.timestamp)
+                normalizedTimestamp >= weekStart 
+            }
             val lastNotification = events.firstOrNull()?.let { 
                 "${it.time} - ${it.date}"
             } ?: "Never"
+            
+            // Debug logging
+            android.util.Log.d("HistoryModel", "Analytics calculated - Total: $totalCount, Today: $todayCount, Week: $weekCount")
+            android.util.Log.d("HistoryModel", "Today start: $todayStart, Week start: $weekStart, Now: $now")
+            if (events.isNotEmpty()) {
+                val firstEvent = events.first()
+                val normalizedFirst = normalizeTimestamp(firstEvent.timestamp)
+                android.util.Log.d("HistoryModel", "First event timestamp: ${firstEvent.timestamp}, normalized: $normalizedFirst, isToday: ${normalizedFirst >= todayStart}")
+            }
             
             DoorbellAnalytics(
                 totalNotifications = totalCount,
@@ -167,6 +198,7 @@ class HistoryModel {
             )
         } catch (e: Exception) {
             android.util.Log.e("HistoryModel", "Error getting analytics: ${e.message}")
+            e.printStackTrace()
             DoorbellAnalytics(0, 0, 0, "Never")
         }
     }
