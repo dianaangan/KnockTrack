@@ -97,33 +97,33 @@ object GlobalFirebaseListener {
                         val currentLatestEvent = latestEvent
                         if (currentLatestEvent != null) {
                             Log.d("GlobalFirebaseListener", "Found doorbell event: ${currentLatestEvent.time}, timestamp: ${currentLatestEvent.timestamp}, last seen: $lastEventTimestamp")
-                            
-                            // Check if this is a NEW event (timestamp is newer than last seen)
+                        
+                        // Check if this is a NEW event (timestamp is newer than last seen)
                             if (currentLatestEvent.timestamp > lastEventTimestamp) {
                                 lastEventTimestamp = currentLatestEvent.timestamp
-                                
+                            
                                 Log.d("GlobalFirebaseListener", "NEW DOORBELL EVENT DETECTED: ${currentLatestEvent.time} (timestamp: ${currentLatestEvent.timestamp})")
-                                
-                                // Show global alert dialog - ALWAYS show alert regardless of current activity
+                            
+                            // Show global alert dialog - ALWAYS show alert regardless of current activity
                                 val eventId = "${currentLatestEvent.timestamp}_${currentLatestEvent.time}_${currentLatestEvent.date}"
-                                
-                                // Enhanced activity detection with fallback
-                                val currentActivityLocal = getCurrentActivity()
+                            
+                            // Enhanced activity detection with fallback
+                            val currentActivityLocal = getCurrentActivity()
                                 
                                 // Launch coroutine to show alert on main thread
                                 scope?.launch(Dispatchers.Main) {
-                                    if (currentActivityLocal != null) {
-                                        Log.d("GlobalFirebaseListener", "Showing alert on current activity: ${currentActivityLocal.javaClass.simpleName}")
-                                        GlobalAlertManager.showDoorbellAlert(
-                                            currentActivityLocal, 
+                            if (currentActivityLocal != null) {
+                                Log.d("GlobalFirebaseListener", "Showing alert on current activity: ${currentActivityLocal.javaClass.simpleName}")
+                                GlobalAlertManager.showDoorbellAlert(
+                                    currentActivityLocal, 
                                             currentLatestEvent.time, 
                                             currentLatestEvent.date, 
                                             currentLatestEvent.timestamp, 
-                                            eventId
-                                        )
-                                    } else {
-                                        Log.w("GlobalFirebaseListener", "No current activity available, but doorbell event detected!")
-                                        Log.d("GlobalFirebaseListener", "Listener status: ${debugStatus()}")
+                                    eventId
+                                )
+                            } else {
+                                Log.w("GlobalFirebaseListener", "No current activity available, but doorbell event detected!")
+                                Log.d("GlobalFirebaseListener", "Listener status: ${debugStatus()}")
                                         // Try to get activity from BaseActivity or show notification only
                                         val fallbackActivity = currentActivityRef?.get()
                                         if (fallbackActivity != null) {
@@ -164,7 +164,7 @@ object GlobalFirebaseListener {
                                     val currentActivity = getCurrentActivity() ?: activity
                                     if (currentActivity != null) {
                                         startListening(currentActivity)
-                                    }
+                        }
                                 }
                             }
                         }

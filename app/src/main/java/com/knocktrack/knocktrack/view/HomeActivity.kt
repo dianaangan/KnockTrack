@@ -260,11 +260,11 @@ class HomeActivity : BaseActivity(), HomeView {
             tvNoRecentActivity.visibility = android.view.View.VISIBLE
         } else {
             tvNoRecentActivity.visibility = android.view.View.GONE
-            
-            // Add activity items dynamically from Firebase data
-            activities.take(2).forEachIndexed { index, activity ->
-                val activityItem = createActivityItem(activity, index)
-                recentActivityContainer.addView(activityItem)
+        
+        // Add activity items dynamically from Firebase data
+        activities.take(2).forEachIndexed { index, activity ->
+            val activityItem = createActivityItem(activity, index)
+            recentActivityContainer.addView(activityItem)
             }
         }
         

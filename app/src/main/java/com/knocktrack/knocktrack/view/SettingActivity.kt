@@ -11,6 +11,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import com.knocktrack.knocktrack.R
+import com.google.firebase.database.FirebaseDatabase
+import kotlinx.coroutines.*
+import kotlinx.coroutines.tasks.await
 
 class SettingActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -147,7 +150,8 @@ class SettingActivity : BaseActivity() {
     }
     
     /**
-     * Saves device configuration to SharedPreferences.
+     * Saves device configuration to SharedPreferences after validating with Firebase.
+     * Validates that the device ID exists and auth key matches in Firebase backend.
      */
     private fun saveConfiguration(etDeviceId: EditText, etAuthKey: EditText, tvDeviceStatus: TextView, btnSaveConfig: Button, btnReset: Button) {
         val deviceId = etDeviceId.text.toString().trim()
@@ -158,40 +162,113 @@ class SettingActivity : BaseActivity() {
             return
         }
         
-        // Get current user email for account-specific storage
-        val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
-        val userEmail = currentUser?.email ?: "default"
-        
-        // Save to account-specific SharedPreferences
-        val prefs = getSharedPreferences("device_config_$userEmail", MODE_PRIVATE)
-        val editor = prefs.edit()
-        editor.putString("device_id", deviceId)
-        editor.putString("auth_key", authKey)
-        editor.putBoolean("device_connected", true) // Mark this account as connected
-        editor.apply()
-        
-        // Update UI
-        tvDeviceStatus.text = "Connected ✓"
-        tvDeviceStatus.setTextColor(resources.getColor(android.R.color.holo_green_dark))
-        btnReset.visibility = android.view.View.VISIBLE
-        btnSaveConfig.text = "Connected"
+        // Disable button and show loading state
         btnSaveConfig.isEnabled = false
+        btnSaveConfig.text = "Validating..."
         btnSaveConfig.alpha = 0.6f
-        // Make fields non-editable and grey when connected
-        etDeviceId.isEnabled = false
-        etDeviceId.isFocusable = false
-        etDeviceId.isClickable = false
-        etDeviceId.setTextColor(resources.getColor(android.R.color.darker_gray))
-        etDeviceId.setBackgroundResource(R.drawable.edittext_border_grey)
-        etAuthKey.isEnabled = false
-        etAuthKey.isFocusable = false
-        etAuthKey.isClickable = false
-        etAuthKey.setTextColor(resources.getColor(android.R.color.darker_gray))
-        etAuthKey.setBackgroundResource(R.drawable.edittext_border_grey)
         
-        Toast.makeText(this, "Connected to doorbell successfully!", Toast.LENGTH_SHORT).show()
-        
-        android.util.Log.d("SettingActivity", "Device configuration saved for account $userEmail - ID: $deviceId, Key: $authKey")
+        // Validate device ID and auth key with Firebase backend
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val isValid = withContext(Dispatchers.IO) {
+                    validateDeviceCredentials(deviceId, authKey)
+                }
+                
+                if (isValid) {
+                    // Get current user email for account-specific storage
+                    val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+                    val userEmail = currentUser?.email ?: "default"
+                    
+                    // Save to account-specific SharedPreferences
+                    val prefs = getSharedPreferences("device_config_$userEmail", MODE_PRIVATE)
+                    val editor = prefs.edit()
+                    editor.putString("device_id", deviceId)
+                    editor.putString("auth_key", authKey)
+                    editor.putBoolean("device_connected", true) // Mark this account as connected
+                    editor.apply()
+                    
+                    // Update UI
+                    tvDeviceStatus.text = "Connected ✓"
+                    tvDeviceStatus.setTextColor(resources.getColor(android.R.color.holo_green_dark))
+                    btnReset.visibility = android.view.View.VISIBLE
+                    btnSaveConfig.text = "Connected"
+                    btnSaveConfig.isEnabled = false
+                    btnSaveConfig.alpha = 0.6f
+                    // Make fields non-editable and grey when connected
+                    etDeviceId.isEnabled = false
+                    etDeviceId.isFocusable = false
+                    etDeviceId.isClickable = false
+                    etDeviceId.setTextColor(resources.getColor(android.R.color.darker_gray))
+                    etDeviceId.setBackgroundResource(R.drawable.edittext_border_grey)
+                    etAuthKey.isEnabled = false
+                    etAuthKey.isFocusable = false
+                    etAuthKey.isClickable = false
+                    etAuthKey.setTextColor(resources.getColor(android.R.color.darker_gray))
+                    etAuthKey.setBackgroundResource(R.drawable.edittext_border_grey)
+                    
+                    Toast.makeText(this@SettingActivity, "Connected to doorbell successfully!", Toast.LENGTH_SHORT).show()
+                    
+                    android.util.Log.d("SettingActivity", "Device configuration saved for account $userEmail - ID: $deviceId, Key: $authKey")
+                } else {
+                    // Validation failed - restore button state
+                    btnSaveConfig.isEnabled = true
+                    btnSaveConfig.text = "Connect to Doorbell"
+                    btnSaveConfig.alpha = 1.0f
+                    
+                    Toast.makeText(this@SettingActivity, "Invalid Device ID or Auth Key. Please check your credentials and try again.", Toast.LENGTH_LONG).show()
+                    
+                    android.util.Log.w("SettingActivity", "Device validation failed - ID: $deviceId")
+                }
+            } catch (e: Exception) {
+                // Error during validation - restore button state
+                btnSaveConfig.isEnabled = true
+                btnSaveConfig.text = "Connect to Doorbell"
+                btnSaveConfig.alpha = 1.0f
+                
+                Toast.makeText(this@SettingActivity, "Error validating credentials. Please check your internet connection and try again.", Toast.LENGTH_LONG).show()
+                
+                android.util.Log.e("SettingActivity", "Error validating device credentials: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+    
+    /**
+     * Validates device ID and auth key against Firebase database backend.
+     * Reads from: devices/{deviceId}/auth_key
+     * 
+     * @param deviceId The device ID to validate (e.g., "DOORBELL_001")
+     * @param authKey The auth key to validate (e.g., "12345")
+     * @return true if device exists and auth key matches, false otherwise
+     */
+    private suspend fun validateDeviceCredentials(deviceId: String, authKey: String): Boolean {
+        return try {
+            val database = FirebaseDatabase.getInstance().reference
+            // Read from: devices/{deviceId}
+            val deviceRef = database.child("devices").child(deviceId)
+            
+            // Check if device exists in Firebase backend
+            val snapshot = deviceRef.get().await()
+            
+            if (!snapshot.exists()) {
+                android.util.Log.w("SettingActivity", "Device ID does not exist in Firebase backend: $deviceId")
+                return false
+            }
+            
+            // Read auth_key from: devices/{deviceId}/auth_key
+            val storedAuthKey = snapshot.child("auth_key").getValue(String::class.java)
+            
+            if (storedAuthKey == null || storedAuthKey != authKey) {
+                android.util.Log.w("SettingActivity", "Auth key mismatch for device: $deviceId (expected: $storedAuthKey, got: $authKey)")
+                return false
+            }
+            
+            android.util.Log.d("SettingActivity", "Device credentials validated successfully from Firebase backend: $deviceId")
+            true
+        } catch (e: Exception) {
+            android.util.Log.e("SettingActivity", "Error validating device credentials from Firebase: ${e.message}")
+            false
+        }
     }
     
     /**
@@ -252,3 +329,6 @@ class SettingActivity : BaseActivity() {
         return Pair(deviceId, authKey)
     }
 }
+
+
+

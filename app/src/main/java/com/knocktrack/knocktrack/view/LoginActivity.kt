@@ -161,11 +161,13 @@ class LoginActivity : Activity(), LoginView {
     }
 
     /**
-     * Disable back navigation to previous screens once we are on the login screen
-     * (e.g., after logout). Keeps the user on Login until they authenticate again.
+     * Handle back navigation.
+     * When coming from LandingPageActivity, allows normal back navigation.
+     * When coming from logout (with FLAG_ACTIVITY_CLEAR_TASK), the back stack is already cleared,
+     * so back navigation will exit the app (which is acceptable behavior).
      */
     override fun onBackPressed() {
-        // Do nothing to keep user on Login screen
+        super.onBackPressed()
     }
 }
 
