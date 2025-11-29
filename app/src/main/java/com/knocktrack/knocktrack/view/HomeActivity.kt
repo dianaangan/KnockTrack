@@ -130,6 +130,11 @@ class HomeActivity : BaseActivity(), HomeView {
         
         // Refresh connection status
         checkConnectionStatus()
+        
+        // Refresh analytics when screen resumes
+        if (isDeviceConnected()) {
+            presenter.loadDoorbellData()
+        }
     }
 
     /** Creates the Presenter and attaches this Activity as its View. */
