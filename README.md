@@ -59,8 +59,9 @@ KnockTrack is a Kotlin-based Android application that monitors a smart doorbell 
 
 ### ⚙️ Settings Control
 - Device ID and Auth Key fields that become read-only and greyed out when a device is connected
-- “Connect” / “Reset” actions with guardrails to avoid accidental edits
+- "Connect" / "Reset" actions with guardrails to avoid accidental edits
 - SharedPreferences persistence so states survive app restarts
+- Full MVP architecture with `SettingPresenter` and `SettingModel` for clean separation of concerns
 
 ### 🔔 Notification System
 - `GlobalAlertManager` handles channel creation, vibration, and sound
@@ -83,12 +84,12 @@ KnockTrack is a Kotlin-based Android application that monitors a smart doorbell 
 
 KnockTrack follows MVP to keep UI, logic, and data concerns isolated:
 
-- **View (Activities):** `HomeActivity`, `HistoryActivity`, `SettingActivity`, etc.
-- **Presenter:** Mediates between views and models, e.g., `HomePresenter`, `HistoryPresenter`.
-- **Model:** Talks to Firebase and local storage (`HistoryModel`, `DoorbellModel`).
+- **View (Activities + Interfaces):** `HomeActivity`, `HistoryActivity`, `SettingActivity`, etc., implementing their respective View interfaces (`HomeView`, `HistoryView`, `SettingView`).
+- **Presenter:** Mediates between views and models, e.g., `HomePresenter`, `HistoryPresenter`, `SettingPresenter`, `LoginPresenter`, `RegisterPresenter`.
+- **Model:** Talks to Firebase and local storage (`HistoryModel`, `DoorbellModel`, `HomeModel`, `SettingModel`, `LoginModel`, `RegisterModel`).
 - **Utilities:** `GlobalAlertManager`, `GlobalFirebaseListener`, SharedPreferences helpers.
 
-This structure keeps business rules testable and lets UI layers focus on rendering.
+This structure keeps business rules testable and lets UI layers focus on rendering. All screens consistently follow the MVP pattern for maintainability and scalability.
 
 ---
 
@@ -143,9 +144,36 @@ cd KnockTrack
 app/src/main/java/com/knocktrack/knocktrack/
 ├── adapter/      # RecyclerView adapters (DoorbellEventAdapter, etc.)
 ├── model/        # Firebase + persistence logic
+│   ├── DoorbellModel.kt
+│   ├── HistoryModel.kt
+│   ├── HomeModel.kt
+│   ├── LoginModel.kt
+│   ├── RegisterModel.kt
+│   └── SettingModel.kt
 ├── presenter/    # MVP presenters coordinating UI + data
+│   ├── HistoryPresenter.kt
+│   ├── HomePresenter.kt
+│   ├── LoginPresenter.kt
+│   ├── RegisterPresenter.kt
+│   └── SettingPresenter.kt
+├── service/      # Firebase authentication service
+│   └── FirebaseAuthService.kt
 ├── utils/        # GlobalAlertManager, Firebase listeners, helpers
+│   ├── GlobalAlertManager.kt
+│   └── GlobalFirebaseListener.kt
 └── view/         # Activities implementing MVP contracts
+    ├── BaseActivity.kt
+    ├── HistoryActivity.kt
+    ├── HistoryView.kt
+    ├── HomeActivity.kt
+    ├── HomeView.kt
+    ├── LandingPageActivity.kt
+    ├── LoginActivity.kt
+    ├── LoginView.kt
+    ├── RegisterActivity.kt
+    ├── RegisterView.kt
+    ├── SettingActivity.kt
+    └── SettingView.kt
 ```
 
 Resources are located in `app/src/main/res/` and include layout XMLs, drawables, colors, and strings.
