@@ -37,9 +37,10 @@ class DoorbellEventAdapter(
         // Set event text
         holder.tvEventText.text = "🔔 Doorbell Pressed"
         
-        // Format and set time
+        // Format and set time with date
         val timeText = formatEventTime(event)
-        holder.tvEventTime.text = timeText
+        val dateText = formatEventDate(event)
+        holder.tvEventTime.text = "$timeText - $dateText"
         
         // Set delete button click listener
         holder.btnDelete.setOnClickListener {
@@ -58,21 +59,69 @@ class DoorbellEventAdapter(
     }
 
     /**
-     * Formats the event time for display.
+     * Formats the event time for display as "11:30:05 AM" (with seconds).
+     * ESP32 sends format like "07:30:45.123 PM" - we extract "07:30:45 PM"
      */
     private fun formatEventTime(event: DoorbellEvent): String {
         return try {
             // Use the time from the event if available
             if (event.time.isNotEmpty()) {
-                event.time
+                // ESP32 format: "07:30:45.123 PM" -> extract "07:30:45 PM"
+                val parts = event.time.trim().split(" ")
+                if (parts.size >= 2) {
+                    val timePart = parts[0] // "07:30:45.123"
+                    val amPm = parts[1] // "PM"
+                    // Extract HH:MM:SS (before milliseconds)
+                    val hourMinuteSec = if (timePart.contains(".")) {
+                        timePart.substring(0, timePart.indexOf(".")) // "07:30:45"
+                    } else if (timePart.length >= 8) {
+                        timePart.substring(0, 8) // "07:30:45"
+                    } else {
+                        timePart
+                    }
+                    "$hourMinuteSec $amPm" // "07:30:45 PM"
+                } else {
+                    event.time
+                }
             } else {
                 // Fallback to timestamp formatting
-                val date = Date(event.timestamp)
-                val formatter = SimpleDateFormat("h:mm a", Locale.getDefault())
+                val date = Date(event.timestamp * 1000) // Convert to milliseconds
+                val formatter = SimpleDateFormat("hh:mm:ss a", Locale.getDefault())
                 formatter.format(date)
             }
         } catch (e: Exception) {
             "Unknown time"
+        }
+    }
+    
+    /**
+     * Formats the event date for display.
+     * ESP32 sends format like "2025-11-26" - we format as "Nov 26, 2025"
+     */
+    private fun formatEventDate(event: DoorbellEvent): String {
+        return try {
+            // Use the date from the event if available
+            if (event.date.isNotEmpty()) {
+                // ESP32 format: "2025-11-26" -> format as "Nov 26, 2025"
+                val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                val date = inputFormat.parse(event.date)
+                date?.let { outputFormat.format(it) } ?: event.date
+            } else {
+                // Fallback to timestamp formatting
+                val date = Date(event.timestamp * 1000) // Convert to milliseconds
+                val formatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                formatter.format(date)
+            }
+        } catch (e: Exception) {
+            // If parsing fails, try to return as is or format from timestamp
+            try {
+                val date = Date(event.timestamp * 1000)
+                val formatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                formatter.format(date)
+            } catch (e2: Exception) {
+                "Unknown date"
+            }
         }
     }
 }

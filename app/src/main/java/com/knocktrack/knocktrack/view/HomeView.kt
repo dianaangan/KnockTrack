@@ -17,6 +17,7 @@ interface HomeView {
     fun showNotConnectedState()
     fun showConnectionStatus(wifiConnected: Boolean, bluetoothConnected: Boolean)
     fun showDoorbellAnalytics(analytics: com.knocktrack.knocktrack.model.DoorbellAnalytics)
+    fun showDeviceActiveStatus(isActive: Boolean)  // Show if ESP32 device is active/online
 }
 
 

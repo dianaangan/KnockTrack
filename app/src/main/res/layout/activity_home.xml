@@ -220,37 +220,24 @@
                         android:id="@+id/tvStatus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="✅ Doorbell Active"
+                        android:text="Doorbell Device"
                         android:textAlignment="center"
-                        android:textColor="@color/green"
+                        android:textColor="@android:color/black"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:layout_marginTop="8dp" />
                     
                     <!-- Connection Status -->
-                    <LinearLayout
+                    <TextView
+                        android:id="@+id/tvConnectionStatus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginTop="8dp"
-                        android:gravity="center">
-                        
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Device: "
-                            android:textColor="#666666"
-                            android:textSize="14sp" />
-                        
-                        <TextView
-                            android:id="@+id/tvConnectionStatus"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Not Connected"
-                            android:textColor="#F44336"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
+                        android:text="Checking"
+                        android:textAlignment="center"
+                        android:textColor="@android:color/darker_gray"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="4dp" />
                 </LinearLayout>
 
                 <!-- Alert Banner (Hidden by default) -->

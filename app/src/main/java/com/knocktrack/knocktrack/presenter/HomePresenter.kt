@@ -20,12 +20,13 @@ import android.bluetooth.BluetoothAdapter
 class HomePresenter {
     private var view: HomeView? = null
     private val model = HomeModel()
-    private val doorbellModel = DoorbellModel()
+    private var doorbellModel: DoorbellModel? = null
     private val historyModel = com.knocktrack.knocktrack.model.HistoryModel()
     private var context: Context? = null
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var firebaseListener: com.google.firebase.database.ValueEventListener? = null
     private var eventsRef: com.google.firebase.database.DatabaseReference? = null
+    private var deviceStatusValidationJob: Job? = null
 
     /** The View calls this when it's ready to receive updates. */
     fun attachView(view: HomeView, context: Context) {
@@ -118,8 +119,15 @@ class HomePresenter {
                     return@launch
                 }
                 
+                // Get device ID and create DoorbellModel
+                val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+                val userEmail = currentUser?.email ?: "default"
+                val prefs = context?.getSharedPreferences("device_config_$userEmail", Context.MODE_PRIVATE)
+                val deviceId = prefs?.getString("device_id", "DOORBELL_001") ?: "DOORBELL_001"
+                doorbellModel = DoorbellModel(deviceId)
+                
                 // Load recent activity from Firebase
-                val recentActivity = doorbellModel.getRecentActivity()
+                val recentActivity = doorbellModel?.getRecentActivity() ?: emptyList()
                 val activityStrings = recentActivity.map { event ->
                     "🟢 Doorbell pressed        ${formatTime(event.time)}"
                 }
@@ -131,6 +139,15 @@ class HomePresenter {
                 
                 // Check connection status
                 checkConnectionStatus()
+                
+                // IMPORTANT: Check device status FIRST before setting up listeners
+                // This ensures we show accurate status immediately when app opens
+                // Use a small delay to ensure Firebase is ready
+                delay(500) // Small delay to ensure everything is initialized
+                checkDeviceActiveStatusImmediate()
+                
+                // Then set up real-time listener for device status (more efficient than polling)
+                setupDeviceStatusListener()
                 
                 // Set up real-time listener for automatic updates
                 setupRealtimeListener()
@@ -145,18 +162,18 @@ class HomePresenter {
      * Sets up a real-time Firebase listener to automatically update recent activity.
      */
     private fun setupRealtimeListener() {
-        if (!isDeviceConnected() || context == null) return
-        
-        // Get device ID
-        val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
-        val userEmail = currentUser?.email ?: "default"
-        val prefs = context?.getSharedPreferences("device_config_$userEmail", Context.MODE_PRIVATE)
-        val deviceId = prefs?.getString("device_id", "DOORBELL_001") ?: "DOORBELL_001"
+        if (!isDeviceConnected() || context == null || doorbellModel == null) return
         
         // Remove existing listener if any
         firebaseListener?.let { listener ->
             eventsRef?.removeEventListener(listener)
         }
+        
+        // Get device ID from doorbellModel (already has the correct device ID)
+        val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+        val userEmail = currentUser?.email ?: "default"
+        val prefs = context?.getSharedPreferences("device_config_$userEmail", Context.MODE_PRIVATE)
+        val deviceId = prefs?.getString("device_id", "DOORBELL_001") ?: "DOORBELL_001"
         
         // Set up new listener
         eventsRef = com.google.firebase.database.FirebaseDatabase.getInstance()
@@ -212,6 +229,156 @@ class HomePresenter {
     }
     
     /**
+     * Sets up a real-time listener for device status changes.
+     * This is more efficient than polling - Firebase will notify us when status changes.
+     */
+    private fun setupDeviceStatusListener() {
+        if (!isDeviceConnected() || context == null) {
+            view?.showDeviceActiveStatus(false)
+            return
+        }
+        
+        try {
+            // Use the doorbellModel instance already created in loadDoorbellData
+            // If not created yet, create it now
+            if (doorbellModel == null) {
+                val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+                val userEmail = currentUser?.email ?: "default"
+                val prefs = context?.getSharedPreferences("device_config_$userEmail", Context.MODE_PRIVATE)
+                val deviceId = prefs?.getString("device_id", "DOORBELL_001") ?: "DOORBELL_001"
+                doorbellModel = DoorbellModel(deviceId)
+            }
+            
+            // IMPORTANT: Don't set up real-time listener until AFTER initial check completes
+            // This prevents showing cached/old data before we verify actual status
+            // The initial check will set the correct status first
+            
+            // Set up periodic validation to detect when device goes offline
+            // (Real-time listener won't fire if data doesn't change, so we need to validate timestamp)
+            startDeviceStatusValidation()
+            
+            // Set up real-time listener AFTER initial check (with small delay to ensure initial check completes)
+            scope.launch {
+                delay(1000) // Wait 1 second for initial check to complete
+                doorbellModel?.listenToDeviceStatus { isActive ->
+                    view?.showDeviceActiveStatus(isActive)
+                    android.util.Log.d("HomePresenter", "Device active status updated (real-time): $isActive")
+                }
+            }
+            
+            android.util.Log.d("HomePresenter", "Real-time device status listener set up with periodic validation")
+        } catch (e: Exception) {
+            android.util.Log.e("HomePresenter", "Error setting up device status listener: ${e.message}")
+            view?.showDeviceActiveStatus(false)
+        }
+    }
+    
+    /**
+     * Performs an immediate check of device active status.
+     * Called on screen load to ensure we show current status right away.
+     */
+    private fun checkDeviceActiveStatusImmediate() {
+        if (!isDeviceConnected() || context == null) {
+            android.util.Log.w("HomePresenter", "❌ Cannot check device status - not connected or context null")
+            view?.showDeviceActiveStatus(false)
+            return
+        }
+        
+        if (doorbellModel == null) {
+            android.util.Log.w("HomePresenter", "❌ Cannot check device status - doorbellModel is null, will retry...")
+            // Retry after a short delay if doorbellModel isn't ready yet
+            scope.launch {
+                delay(1000)
+                if (doorbellModel != null) {
+                    checkDeviceActiveStatusImmediate()
+                } else {
+                    view?.showDeviceActiveStatus(false)
+                }
+            }
+            return
+        }
+        
+        scope.launch {
+            try {
+                android.util.Log.d("HomePresenter", "🔍 Starting device status verification from Firebase...")
+                android.util.Log.d("HomePresenter", "   UI should currently show 'Checking...'")
+                android.util.Log.d("HomePresenter", "   Reading EXACT timestamp from Firebase database...")
+                
+                // This reads FRESH data from Firebase to verify actual device status
+                // It uses the EXACT timestamp from the database to determine if device is active
+                val isActive = withContext(Dispatchers.IO) {
+                    doorbellModel?.isDeviceActive() ?: false
+                }
+                
+                android.util.Log.d("HomePresenter", "✅ Firebase verification complete: active=$isActive")
+                android.util.Log.d("HomePresenter", "   Now updating UI to show: ${if (isActive) "Active ✓" else "Doorbell Offline"}")
+                
+                // ONLY update status AFTER we've verified from Firebase
+                // This ensures we never show "Active" without checking first
+                view?.showDeviceActiveStatus(isActive)
+            } catch (e: Exception) {
+                android.util.Log.e("HomePresenter", "❌ Error in device status check: ${e.message}")
+                e.printStackTrace()
+                // If check fails, assume offline for safety
+                android.util.Log.w("HomePresenter", "   Check failed - showing 'Doorbell Offline' for safety")
+                view?.showDeviceActiveStatus(false)
+            }
+        }
+    }
+    
+    /**
+     * Public method to force immediate device status check.
+     * Called from Activity onResume/onCreate to ensure status is current.
+     * This ensures the app always shows the latest status when user opens it.
+     */
+    fun checkDeviceStatusNow() {
+        android.util.Log.d("HomePresenter", "🔄 User opened/resumed app - checking device status NOW")
+        checkDeviceActiveStatusImmediate()
+    }
+    
+    /**
+     * Starts periodic validation of device status.
+     * Since the real-time listener only fires on data changes, we need to periodically
+     * check if the timestamp has expired (device went offline without data changing).
+     */
+    private fun startDeviceStatusValidation() {
+        // Cancel existing job if any
+        deviceStatusValidationJob?.cancel()
+        
+        deviceStatusValidationJob = scope.launch {
+            // Check IMMEDIATELY first (no delay), then periodically while app is open
+            // This ensures status is always up-to-date from time to time
+            while (true) {
+                try {
+                    if (!isDeviceConnected() || context == null || view == null || doorbellModel == null) {
+                        android.util.Log.d("HomePresenter", "Stopping device status validation - disconnected or view detached")
+                        break // Stop if disconnected or view detached
+                    }
+                    
+                    // Validate by checking the timestamp - force fresh read from Firebase
+                    // This reads the LATEST data from Firebase every time
+                    android.util.Log.d("HomePresenter", "🔄 Periodic status check - reading latest from Firebase...")
+                    val isActive = withContext(Dispatchers.IO) {
+                        doorbellModel?.isDeviceActive() ?: false
+                    }
+                    
+                    view?.showDeviceActiveStatus(isActive)
+                    android.util.Log.d("HomePresenter", "✅ Periodic device status check: active=$isActive")
+                    
+                    // Check every 2 seconds for very fast updates
+                    delay(2000)
+                } catch (e: Exception) {
+                    android.util.Log.e("HomePresenter", "❌ Error in device status validation: ${e.message}")
+                    e.printStackTrace()
+                    delay(2000) // Still wait before retrying
+                }
+            }
+        }
+        
+        android.util.Log.d("HomePresenter", "Device status validation started (checking immediately, then every 15s)")
+    }
+    
+    /**
      * Checks if WiFi is connected.
      */
     private fun isWifiConnected(): Boolean {
@@ -238,24 +405,39 @@ class HomePresenter {
     }
     
     /**
-     * Formats time to match the UI format from the picture.
-     * Converts timestamp to readable time format like "10:32 AM"
+     * Formats time to "11:30:05 AM" format (with seconds).
+     * ESP32 sends format like "07:30:45.123 PM" - we extract "07:30:45 PM"
      */
     private fun formatTime(timeString: String): String {
         return try {
-            // If timeString is a timestamp, convert it
+            // If timeString is a timestamp number, convert it
             if (timeString.matches("\\d+".toRegex())) {
                 val timestamp = timeString.toLong()
-                val date = java.util.Date(timestamp * 1000) // Convert to milliseconds
-                val formatter = java.text.SimpleDateFormat("h:mm a", java.util.Locale.getDefault())
+                val date = java.util.Date(timestamp * 1000)
+                val formatter = java.text.SimpleDateFormat("hh:mm:ss a", java.util.Locale.getDefault())
                 formatter.format(date)
             } else {
-                // If it's already formatted, return as is
-                timeString
+                // ESP32 format: "07:30:45.123 PM" -> extract "07:30:45 PM"
+                val parts = timeString.trim().split(" ")
+                if (parts.size >= 2) {
+                    val timePart = parts[0] // "07:30:45.123"
+                    val amPm = parts[1] // "PM"
+                    // Extract HH:MM:SS (first 8 characters, before milliseconds)
+                    val hourMinuteSec = if (timePart.contains(".")) {
+                        timePart.substring(0, timePart.indexOf(".")) // "07:30:45"
+                    } else if (timePart.length >= 8) {
+                        timePart.substring(0, 8) // "07:30:45"
+                    } else {
+                        timePart
+                    }
+                    "$hourMinuteSec $amPm" // "07:30:45 PM"
+                } else {
+                    timeString
+                }
             }
         } catch (e: Exception) {
             // Fallback to current time if parsing fails
-            val formatter = java.text.SimpleDateFormat("h:mm a", java.util.Locale.getDefault())
+            val formatter = java.text.SimpleDateFormat("hh:mm:ss a", java.util.Locale.getDefault())
             formatter.format(java.util.Date())
         }
     }
@@ -286,6 +468,14 @@ class HomePresenter {
         }
         firebaseListener = null
         eventsRef = null
+        
+        // Remove device status listener
+        doorbellModel?.removeDeviceStatusListener()
+        doorbellModel = null
+        
+        // Cancel device status validation job
+        deviceStatusValidationJob?.cancel()
+        deviceStatusValidationJob = null
         
         scope.cancel()
     }
