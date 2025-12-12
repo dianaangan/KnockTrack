@@ -56,8 +56,15 @@ class HomeActivity : BaseActivity(), HomeView {
         // Load doorbell data
         presenter.loadDoorbellData()
         
-        // Check and display connection status
+        // Check and display connection status (will show "Checking..." until verified)
         checkConnectionStatus()
+        
+        // Check device status immediately when screen opens
+        // This will verify if ESP32 is actually active before showing status
+        if (isDeviceConnected()) {
+            // Don't show status until we verify from Firebase
+            presenter.checkDeviceStatusNow()
+        }
     }
 
     /** Binds views from the layout. */
@@ -131,9 +138,11 @@ class HomeActivity : BaseActivity(), HomeView {
         // Refresh connection status
         checkConnectionStatus()
         
-        // Refresh analytics when screen resumes
+        // Refresh analytics and device status when screen resumes
         if (isDeviceConnected()) {
             presenter.loadDoorbellData()
+            // Force immediate status check on resume
+            presenter.checkDeviceStatusNow()
         }
     }
 
@@ -429,6 +438,7 @@ class HomeActivity : BaseActivity(), HomeView {
     
     /**
      * Checks and displays the doorbell connection status.
+     * This checks if device credentials are configured.
      */
     private fun checkConnectionStatus() {
         // Get current user email for account-specific storage
@@ -444,17 +454,62 @@ class HomeActivity : BaseActivity(), HomeView {
         
         // Update connection status in the main section
         val tvConnectionStatus = findViewById<TextView>(R.id.tvConnectionStatus)
+        val tvStatus = findViewById<TextView>(R.id.tvStatus)
         
         if (deviceConnected) {
-            tvConnectionStatus.text = "Connected ✓"
-            tvConnectionStatus.setTextColor(resources.getColor(android.R.color.holo_green_dark))
-            android.util.Log.d("HomeActivity", "Doorbell connection status: Connected (Device: $deviceId) for account: $userEmail")
+            // Set the device label
+            tvStatus.text = "Doorbell Device"
+            tvStatus.setTextColor(resources.getColor(android.R.color.black))
+            
+            // CRITICAL: Always show "Checking..." first when app opens
+            // This will be updated by showDeviceActiveStatus ONLY after Firebase verification completes
+            // We NEVER show "Active" until we've verified from Firebase database
+            tvConnectionStatus.text = "Checking"
+            tvConnectionStatus.setTextColor(resources.getColor(android.R.color.darker_gray))
+            android.util.Log.d("HomeActivity", "🔍 Initial status: 'Checking...' - waiting for Firebase verification")
+            android.util.Log.d("HomeActivity", "   Device credentials found: $deviceId")
+            android.util.Log.d("HomeActivity", "   Will verify actual device status from Firebase database...")
         } else {
-            tvConnectionStatus.text = "Not Connected"
+            tvStatus.text = "Doorbell Device"
+            tvStatus.setTextColor(resources.getColor(android.R.color.black))
+            tvConnectionStatus.text = "Status: Not Connected"
             tvConnectionStatus.setTextColor(resources.getColor(android.R.color.holo_red_dark))
             android.util.Log.d("HomeActivity", "Doorbell connection status: Not Connected for account: $userEmail")
         }
         
+    }
+    
+    /**
+     * Shows the device active status (if ESP32 is online/active).
+     * Called by presenter after checking Firebase heartbeat.
+     * This ONLY updates after Firebase verification completes.
+     */
+    override fun showDeviceActiveStatus(isActive: Boolean) {
+        val tvConnectionStatus = findViewById<TextView>(R.id.tvConnectionStatus)
+        val tvStatus = findViewById<TextView>(R.id.tvStatus)
+        
+        // Only update if device is connected (credentials configured)
+        if (isDeviceConnected()) {
+            // Set the device label
+            tvStatus.text = "Doorbell Device"
+            tvStatus.setTextColor(resources.getColor(android.R.color.black))
+            
+            // This is called AFTER Firebase check completes, so update with actual verified status
+            if (isActive) {
+                // Device is online and active
+                tvConnectionStatus.text = "Status: Active"
+                tvConnectionStatus.setTextColor(resources.getColor(android.R.color.holo_green_dark))
+                android.util.Log.d("HomeActivity", "✅ ESP32 Device Status: Active (verified from Firebase)")
+            } else {
+                // Device is offline
+                tvConnectionStatus.text = "Status: Offline"
+                tvConnectionStatus.setTextColor(resources.getColor(android.R.color.holo_red_dark))
+                android.util.Log.d("HomeActivity", "❌ ESP32 Device Status: Offline (verified from Firebase)")
+            }
+        } else {
+            // If not connected, keep "Not Connected" status (don't override)
+            android.util.Log.d("HomeActivity", "Device not connected - keeping 'Not Connected' status")
+        }
     }
     
     /**
